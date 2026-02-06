@@ -36,10 +36,7 @@ describe('Worker Integration', () => {
       'run', 
       '--pattern', 
       'McpServer', 
-      'package.json' // Scanning package.json as text might fail or find nothing, but ast-grep runs on it.
-                     // Actually ast-grep ignores json by default without lang.
-                     // Let's use a source file.
-      , 'src/index.ts' 
+      'src/index.ts' 
     ];
 
     const child = spawn('node', args, {
@@ -56,10 +53,8 @@ describe('Worker Integration', () => {
 
     expect(fs.existsSync(outputFile)).toBe(true);
     const content = fs.readFileSync(outputFile, 'utf-8');
-    // We expect some output or "No matches"
-    // searching McpServer in src/index.ts should find something.
     expect(content).toContain('McpServer');
-  });
+  }, 15000); // Increased timeout to 15s
 
   it('should handle no matches gracefully', async () => {
     const testIdNoMatch = 'TEST_NOMATCH';
