@@ -14,7 +14,7 @@ This extension integrates [ast-grep](https://ast-grep.github.io/), a fast and po
 To install this extension, use the Gemini CLI:
 
 ```bash
-gemini extensions install https://github.com/steven-thompson/ast-grep-extension
+gemini extensions install https://github.com/stevenAthompson/ast-grep-extension
 ```
 *(Replace the URL with the actual repository URL if different)*
 
