@@ -20,6 +20,7 @@ const server = new McpServer({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '.bin', 'ast-grep');
+const WORKER_SCRIPT = path.join(__dirname, 'worker.js');
 
 /**
  * Generates a unique ID for request tracking.
@@ -48,7 +49,7 @@ export async function runAstGrep(args: string[]): Promise<{ stdout: string; stde
 }
 
 /**
- * Helper to run ast-grep command asynchronously with tmux notification
+ * Helper to run ast-grep command asynchronously via detached worker
  */
 async function runAstGrepAsync(args: string[]): Promise<{ content: { type: "text"; text: string }[]; isError?: boolean }> {
   if (!isInsideTmuxSession()) {
@@ -65,60 +66,31 @@ async function runAstGrepAsync(args: string[]): Promise<{ content: { type: "text
   const id = getNextId();
   const commandStr = `ast-grep ${args.join(' ')}`;
 
-  const child = spawn(AST_GREP_BIN, args, {
-    detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  let output = '';
-  const MAX_OUTPUT_LENGTH = 500; // Increased capture for ast-grep results
-
-  child.stdout.on('data', (data) => {
-    if (output.length < MAX_OUTPUT_LENGTH) {
-      output += data.toString();
-    }
-  });
-
-  child.stderr.on('data', (data) => {
-    if (output.length < MAX_OUTPUT_LENGTH) {
-      output += data.toString();
-    }
-  });
-
-  child.on('close', async (code) => {
-    try {
-      const codeStr = `(${code})`;
-      const target = `${SESSION_NAME}:0.0`; // Assume main pane
-      
-      let outStr = output.trim();
-      if (outStr.length > MAX_OUTPUT_LENGTH) {
-        outStr = outStr.substring(0, MAX_OUTPUT_LENGTH) + '... (truncated)';
-      }
-
-      // Simplified notification format for clarity
-      const completionMessage = `[${id}] ast-grep finished ${codeStr}. Output:\n${outStr}`;
-      
-      await sendNotification(target, completionMessage);
-    } catch (err) {
-      console.error(`Failed to send completion notification for [${id}]:`, err);
-    }
-  });
-
-  child.on('error', async (err) => {
-    try {
-      const target = `${SESSION_NAME}:0.0`;
-      const errorMessage = `[${id}] ast-grep failed to start: ${err.message}`;
-      await sendNotification(target, errorMessage);
-    } catch (notifyErr) {
-      console.error(`Failed to send error notification for [${id}]:`, notifyErr);
-    }
-  });
+  try {
+    // Spawn the worker detached
+    const child = spawn(process.execPath, [WORKER_SCRIPT, id, SESSION_NAME, ...args], {
+      detached: true,
+      stdio: 'ignore', // Fully detached
+    });
+    
+    child.unref(); // Allow parent to stop waiting for this child
+  } catch (err: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error starting background task: ${err.message}`, 
+        },
+      ],
+      isError: true,
+    };
+  }
 
   return {
     content: [
       {
         type: 'text',
-        text: `Background task [${id}] started: \"${commandStr}\". I will notify you when it finishes.`,
+        text: `Background task [${id}] started: "${commandStr}". I will notify you when it finishes.`, 
       },
     ],
   };
