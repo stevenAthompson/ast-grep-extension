@@ -2,6 +2,8 @@
 
 This extension integrates [ast-grep](https://ast-grep.github.io/), a fast and polyglot tool for code structural search, linting, and rewriting, directly into the Gemini CLI agent. It allows the agent to perform syntax-aware search and replace operations that are far more powerful and safe than regex-based methods.
 
+Note: If you want the agent to be able to run really slow/long running commands with the "async" option it requires you must lauch gemini-cli via tmux using the provided shell script or with something like: SESSION_NAME="gemini-cli"; tmux new-session -d -s $SESSION_NAME 'gemini'; tmux attach -t $SESSION_NAME
+
 ## Features
 
 -   **Structural Search**: Find code based on AST patterns, not just text matching.
