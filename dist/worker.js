@@ -37,6 +37,18 @@ async function main() {
         }
     });
     child.on('close', async (code) => {
+        // If no output was produced, write a helpful message based on exit code
+        if (output.length === 0) {
+            if (code === 1) {
+                fileStream.write("No matches found.");
+            }
+            else if (code === 0) {
+                fileStream.write("Command completed with no output.");
+            }
+            else {
+                fileStream.write(`Command failed with exit code ${code} and produced no output.`);
+            }
+        }
         fileStream.end();
         try {
             const codeStr = `(${code})`;
