@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as fs from 'fs';
 import { isInsideTmuxSession, sendNotification, SESSION_NAME } from './tmux_utils.js';
 
 // Create the MCP server instance
@@ -65,10 +66,16 @@ async function runAstGrepAsync(args: string[]): Promise<{ content: { type: "text
   }
   const id = getNextId();
   const commandStr = `ast-grep ${args.join(' ')}`;
+  
+  const tmpDir = path.join(process.cwd(), 'tmp');
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
+  const outputFile = path.join(tmpDir, `ast-grep-${id}.txt`);
 
   try {
     // Spawn the worker detached
-    const child = spawn(process.execPath, [WORKER_SCRIPT, id, SESSION_NAME, ...args], {
+    const child = spawn(process.execPath, [WORKER_SCRIPT, id, SESSION_NAME, outputFile, ...args], {
       detached: true,
       stdio: 'ignore', // Fully detached
     });
@@ -90,7 +97,7 @@ async function runAstGrepAsync(args: string[]): Promise<{ content: { type: "text
     content: [
       {
         type: 'text',
-        text: `Background task [${id}] started: "${commandStr}". I will notify you when it finishes.`, 
+        text: `Background task [${id}] started: "${commandStr}".\nOutput will be written to: ${outputFile}\nI will notify you when it finishes.`, 
       },
     ],
   };
