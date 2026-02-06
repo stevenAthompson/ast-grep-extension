@@ -8,6 +8,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { spawn } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { isInsideTmuxSession, sendNotification, SESSION_NAME } from './tmux_utils.js';
 
 // Create the MCP server instance
@@ -16,7 +17,9 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const AST_GREP_BIN = path.join(process.cwd(), 'node_modules', '.bin', 'ast-grep');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '.bin', 'ast-grep');
 
 /**
  * Generates a unique ID for request tracking.
