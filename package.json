@@ -1,0 +1,24 @@
+{
+  "name": "ast-grep",
+  "version": "0.1.0",
+  "description": "Allows Gemini CLI to grep through code bases and perform more efficient syntax aware find/replace operations than the built-in, limited, \"Replace\" function using ast-grep which is a fast and polyglot tool for code structural search, lint, rewriting at large scale.",
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@ast-grep/cli": "^0.40.5",
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "zod": "^3.22.4"
+  }
+}

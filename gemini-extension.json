@@ -1,0 +1,11 @@
+{
+  "name": "ast-grep",
+  "version": "0.1.0",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "main": {
+      "command": "node",
+      "args": ["${extensionPath}${/}dist${/}index.js"]
+    }
+  }
+}
