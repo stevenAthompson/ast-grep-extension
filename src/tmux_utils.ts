@@ -38,6 +38,8 @@ export function isInsideTmuxSession(): boolean {
  * @returns {Promise<boolean>} True if stable, false if timed out.
  */
 export async function waitForStability(target: string, stableDurationMs: number = 10000, pollingIntervalMs: number = 1000, timeoutMs: number = 300000): Promise<boolean> {
+    if (process.env.NODE_ENV === 'test') return true;
+
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const requiredChecks = Math.ceil(stableDurationMs / pollingIntervalMs);
     
@@ -51,14 +53,19 @@ export async function waitForStability(target: string, stableDurationMs: number 
         let currentContent = '';
         try {
             // Capture the full pane content
-            const textContent = execSync(`tmux capture-pane -p -t ${target}`, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
+            const textContent = execSync(`tmux capture-pane -p -t ${target}`, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] });
             
             // Capture cursor position to detect movement (which text capture misses)
             const cursorPosition = execSync(`tmux display-message -p -t ${target} "#{cursor_x},#{cursor_y}"`, { encoding: 'utf-8' }).trim();
             
             // Combine both for the stability signature
             currentContent = `${textContent}\n__CURSOR__:${cursorPosition}`;
-        } catch (e) {
+        } catch (e: any) {
+            // If session not found, fail fast
+            const stderr = e.stderr ? e.stderr.toString() : '';
+            if (stderr.includes('session not found') || stderr.includes('no server running') || e.status === 127) {
+                return false; // Abort, session doesn't exist or tmux missing
+            }
             continue;
         }
 

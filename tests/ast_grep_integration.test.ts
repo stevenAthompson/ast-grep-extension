@@ -32,13 +32,6 @@ describe('ast-grep Integration', () => {
   });
 
   it('should rewrite patterns in a file', async () => {
-    // We'll use --stdout to avoid modifying the file in place for this test, or revert it
-    // Actually ast-grep run outputs to stdout by default unless -i or -U is used.
-    // If we want to test rewrite output:
-    // ast-grep run -p "..." -r "..." file
-    // It prints diff to stdout. 
-    
-    // Let's try modifying a temp copy
     const rewriteFile = 'rewrite-test.js';
     fs.writeFileSync(rewriteFile, testContent);
     
@@ -52,5 +45,13 @@ describe('ast-grep Integration', () => {
     expect(newContent).not.toContain('console.log("Hello")');
     
     fs.unlinkSync(rewriteFile);
+  });
+
+  it('should return no matches found for missing pattern', async () => {
+    const args = ['run', '--pattern', 'nonExistentPattern($MSG)', testFile];
+    const { stdout, exitCode } = await runAstGrep(args);
+    
+    expect(exitCode).toBe(0); // Wrapper should return 0 for "no matches"
+    expect(stdout).toContain('No matches found');
   });
 });
