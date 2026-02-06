@@ -57,7 +57,7 @@ async function main() {
         outStr += '...';
       }
 
-      const completionMessage = `[${id}] ast-grep finished ${codeStr}. Output saved to: ${outputFile}\nPreview: ${outStr}`;
+      const completionMessage = `[${id}] ast-grep finished ${codeStr}. Results: ${outputFile} | Preview: ${outStr}`;
       
       await sendNotification(target, completionMessage);
     } catch (err) {
