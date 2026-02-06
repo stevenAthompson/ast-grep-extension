@@ -10,7 +10,8 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '.bin', 'ast-grep');
+// Use the direct path to the CLI binary to avoid broken .bin symlinks
+const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '@ast-grep', 'cli', 'ast-grep');
 
 // Arguments: node worker.js <id> <session_name> <output_file> <...ast-grep-args>
 const args = process.argv.slice(2);

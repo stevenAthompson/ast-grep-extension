@@ -83,8 +83,7 @@ export async function waitForStability(target: string, stableDurationMs: number 
  */
 export async function sendNotification(target: string, message: string) {
     // Use a longer timeout (10 minutes) for the lock to accommodate waitForStability
-    // Changed lock name to be unique for ast-grep extension to avoid conflict with self-command
-    const lock = new FileLock('gemini-ast-grep-notification', 500, 1200); 
+    const lock = new FileLock('gemini-tmux-notification', 500, 1200); 
     
     if (await lock.acquire()) {
         try {

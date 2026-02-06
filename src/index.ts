@@ -20,7 +20,8 @@ const server = new McpServer({
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '.bin', 'ast-grep');
+// Use the direct path to the CLI binary to avoid broken .bin symlinks in distributed node_modules
+const AST_GREP_BIN = path.join(__dirname, '..', 'node_modules', '@ast-grep', 'cli', 'ast-grep');
 const WORKER_SCRIPT = path.join(__dirname, 'worker.js');
 
 /**
@@ -41,7 +42,12 @@ export async function runAstGrep(args: string[]): Promise<{ stdout: string; stde
     child.stdout.on('data', (data) => (stdout += data.toString()));
     child.stderr.on('data', (data) => (stderr += data.toString()));
     child.on('close', (code) => {
-      resolve({ stdout, stderr, exitCode: code });
+      // Exit code 1 means no matches found, which is a success state for us (just empty output)
+      if (code === 1) {
+        resolve({ stdout: stdout || 'No matches found.', stderr, exitCode: 0 });
+      } else {
+        resolve({ stdout, stderr, exitCode: code });
+      }
     });
     child.on('error', (err) => {
       reject(err);
