@@ -4,6 +4,8 @@ This extension integrates [ast-grep](https://ast-grep.github.io/), a fast and po
 
 Note: If you want the agent to be able to run really slow/long running commands with the "async" option it requires you must lauch gemini-cli via tmux using the provided shell script or with something like: SESSION_NAME="gemini-cli"; tmux new-session -d -s $SESSION_NAME 'gemini'; tmux attach -t $SESSION_NAME
 
+This is one of a handful of extensions that Gemini CLI actually asked me to build for it, and it uses it frequently as the builtin "Replace" command seems to be pretty primitive. 
+
 ## Features
 
 -   **Structural Search**: Find code based on AST patterns, not just text matching.
