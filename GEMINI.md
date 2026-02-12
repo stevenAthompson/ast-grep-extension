@@ -33,6 +33,22 @@ Scan and rewrite code by configuration or inline rules.
 - `async`: (Optional) Run asynchronously in the background and notify via tmux. Defaults to false.
 - `extra_args`: (Optional) Additional command line arguments to pass to ast-grep.
 
+### ast_read
+Reads code structurally. Use this to find specific functions, classes, or patterns without reading the entire file. More efficient and precise than `read_file` for locating code.
+- `paths`: The paths to the files to read.
+- `pattern`: (Optional) The AST pattern to match. Defaults to "$$$" (match everything).
+- `lang`: (Optional) The language of the file (e.g., ts, js, python).
+- `context`: (Optional) Show NUM lines around each match.
+- `async`: (Optional) Run asynchronously in the background.
+
+### ast_write
+Replaces code structurally. Safer and more robust than standard replace. Requires an exact AST pattern match. Will only modify existing files.
+- `paths`: The paths to the files to modify. Files must exist.
+- `pattern`: The old code structure/pattern to find.
+- `replacement`: The new code structure to insert.
+- `lang`: (Optional) The language of the file.
+- `async`: (Optional) Run asynchronously in the background.
+
 ## Agent Guidelines for Asynchronous Execution
 
 When performing large codebase searches or complex rewrites, use the `async: true` flag.

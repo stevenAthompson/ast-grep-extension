@@ -235,6 +235,91 @@ server.registerTool('ast_grep_scan', {
         };
     }
 });
+// Tool: ast_read (Wrapper around search)
+server.registerTool('ast_read', {
+    description: 'Reads code structurally. Use this to find specific functions, classes, or patterns without reading the entire file. More efficient and precise than read_file for locating code.',
+    inputSchema: z.object({
+        paths: z.array(z.string()).describe('The paths to the files to read.'),
+        pattern: z.string().optional().default('$$$').describe('The AST pattern to match. Defaults to "$$$" (match everything).'),
+        lang: z.string().optional().describe('The language of the file (e.g., ts, js, python).'),
+        context: z.number().int().optional().describe('Show NUM lines around each match.'),
+        async: z.boolean().optional().default(false).describe('Run asynchronously in the background.'),
+    }),
+}, async ({ paths, pattern, lang, context, async }) => {
+    const args = ['run', '--pattern', pattern];
+    if (lang)
+        args.push('--lang', lang);
+    if (context)
+        args.push('--context', context.toString());
+    args.push(...paths);
+    if (async) {
+        return runAstGrepAsync(args);
+    }
+    try {
+        const { stdout, stderr, exitCode } = await runAstGrep(args);
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: stdout || (exitCode === 0 ? 'No matches found.' : `Error: ${stderr}`),
+                },
+            ],
+            isError: exitCode !== 0 && exitCode !== null && stdout === '',
+        };
+    }
+    catch (error) {
+        return {
+            content: [{ type: 'text', text: error.message }],
+            isError: true,
+        };
+    }
+});
+// Tool: ast_write (Wrapper around rewrite)
+server.registerTool('ast_write', {
+    description: 'Replaces code structurally. Safer and more robust than standard replace. Requires an exact AST pattern match. Will only modify existing files.',
+    inputSchema: z.object({
+        paths: z.array(z.string()).describe('The paths to the files to modify. Files must exist.'),
+        pattern: z.string().describe('The old code structure/pattern to find.'),
+        replacement: z.string().describe('The new code structure to insert.'),
+        lang: z.string().optional().describe('The language of the file.'),
+        async: z.boolean().optional().default(false).describe('Run asynchronously in the background.'),
+    }),
+}, async ({ paths, pattern, replacement, lang, async }) => {
+    // Safety check: Ensure files exist to prevent creating new ones by accident (though ast-grep usually requires source)
+    for (const p of paths) {
+        if (!fs.existsSync(p)) {
+            return {
+                content: [{ type: 'text', text: `Error: File does not exist: ${p}. ast_write requires existing files.` }],
+                isError: true,
+            };
+        }
+    }
+    const args = ['run', '--pattern', pattern, '--rewrite', replacement, '--update-all'];
+    if (lang)
+        args.push('--lang', lang);
+    args.push(...paths);
+    if (async) {
+        return runAstGrepAsync(args);
+    }
+    try {
+        const { stdout, stderr, exitCode } = await runAstGrep(args);
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: stdout || (exitCode === 0 ? 'Rewrite completed successfully.' : `Error: ${stderr}`),
+                },
+            ],
+            isError: exitCode !== 0 && exitCode !== null,
+        };
+    }
+    catch (error) {
+        return {
+            content: [{ type: 'text', text: error.message }],
+            isError: true,
+        };
+    }
+});
 // Connect the server to the stdio transport
 const transport = new StdioServerTransport();
 await server.connect(transport);
