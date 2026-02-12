@@ -49,6 +49,21 @@ Replaces code structurally. Safer and more robust than standard replace. Require
 - `lang`: (Optional) The language of the file.
 - `async`: (Optional) Run asynchronously in the background.
 
+## Effective Pattern Matching Tips
+
+### 1. Valid Code Snippets
+Patterns must be valid code snippets in the target language. For example, in TypeScript, a method definition like `release() { $$$ }` is not valid on its own (it must be inside a class). To match a method, you may need to match the surrounding class or use a more generic pattern.
+
+### 2. Specify the Language
+While `ast-grep` attempts to detect the language from file extensions, explicitly providing the `lang` parameter (e.g., `ts`, `js`, `python`) is more reliable and prevents parsing errors.
+
+### 3. Using Metavariables
+- Use `$$$` to match any number of nodes (useful for "don't care" sections).
+- Use named variables like `$NAME` or `$BODY` to capture specific parts of the code. In `ast_write`, you can reuse these captured variables in the `replacement` string.
+
+### 4. Reading Before Writing
+Always use `ast_read` or `read_file` to understand the file's structure and indentation before attempting an `ast_write`. Structural replacement requires an accurate match of the existing code's logic.
+
 ## Agent Guidelines for Asynchronous Execution
 
 When performing large codebase searches or complex rewrites, use the `async: true` flag.
